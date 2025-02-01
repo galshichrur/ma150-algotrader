@@ -13,13 +13,22 @@ class PortfolioManager:
 
     def run_backtest(self, df: pd.DataFrame) -> dict:
         """Execute vectorized backtest"""
-        df['position'] = 0
+        df = df.copy()
+
+        # Initialize as float to prevent dtype issues
+        df['position'] = 0.0
+
+        # Calculate position changes
         df.loc[df.buy, 'position'] = self.initial_balance / df.price
-        df.loc[df.sell, 'position'] = 0
+        df.loc[df.sell, 'position'] = 0.0
+
+        # Forward fill positions
         df['position'] = df.position.ffill()
+
+        # Calculate portfolio value
         df['value'] = df.position * df.price
 
         return {
             'final_balance': df.value.iloc[-1],
-            'return_pct': (df.value.iloc[-1]/self.initial_balance - 1) * 100
+            'return_pct': (df.value.iloc[-1] / self.initial_balance - 1) * 100
         }
