@@ -15,20 +15,34 @@ class PortfolioManager:
         """Execute vectorized backtest"""
         df = df.copy()
 
-        # Initialize as float to prevent dtype issues
-        df['position'] = 0.0
+        # Initialize portfolio tracking
+        df['position'] = 0.0  # Number of shares held
+        df['cash'] = self.initial_balance  # Available cash
+        df['total_value'] = self.initial_balance  # Portfolio value
 
-        # Calculate position changes
-        df.loc[df.buy, 'position'] = self.initial_balance / df.price
-        df.loc[df.sell, 'position'] = 0.0
+        for i in range(1, len(df)):
+            # Carry forward previous values
+            df.loc[df.index[i], 'position'] = df.loc[df.index[i - 1], 'position']
+            df.loc[df.index[i], 'cash'] = df.loc[df.index[i - 1], 'cash']
 
-        # Forward fill positions
-        df['position'] = df.position.ffill()
+            # Buy signal
+            if df.loc[df.index[i], 'buy']:
+                shares_to_buy = df.loc[df.index[i], 'cash'] / df.loc[df.index[i], 'price']
+                df.loc[df.index[i], 'position'] += shares_to_buy
+                df.loc[df.index[i], 'cash'] = 0.0
 
-        # Calculate portfolio value
-        df['value'] = df.position * df.price
+            # Sell signal
+            if df.loc[df.index[i], 'sell']:
+                df.loc[df.index[i], 'cash'] += df.loc[df.index[i], 'position'] * df.loc[df.index[i], 'price']
+                df.loc[df.index[i], 'position'] = 0.0
+
+            # Update total portfolio value
+            df.loc[df.index[i], 'total_value'] = (
+                    df.loc[df.index[i], 'cash'] +
+                    df.loc[df.index[i], 'position'] * df.loc[df.index[i], 'price']
+            )
 
         return {
-            'final_balance': df.value.iloc[-1],
-            'return_pct': (df.value.iloc[-1] / self.initial_balance - 1) * 100
+            'final_balance': df['total_value'].iloc[-1],
+            'return_pct': (df['total_value'].iloc[-1] / self.initial_balance - 1) * 100
         }
