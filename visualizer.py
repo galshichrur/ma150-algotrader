@@ -3,14 +3,14 @@ Visualization module for strategy results
 """
 
 import matplotlib.pyplot as plt
-import pandas as pd  # Add this import
+import pandas as pd
 from config import STRATEGY_CONFIG
 
 class StrategyVisualizer:
     """Generates professional visualizations of trading activity"""
 
     def __init__(self):
-        self.style = 'seaborn'
+        self.style = 'seaborn-v0_8'  # Updated style name
         self.ma_window = STRATEGY_CONFIG['ma_window']
 
     def plot_signals(self, df: pd.DataFrame, ticker: str):
