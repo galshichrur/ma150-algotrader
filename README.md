@@ -1,4 +1,4 @@
-# MA-AlgoTrader 📈
+# MA150 AlgoTrader 📈
 
 A professional implementation of a 150-day Moving Average (150MA) algorithmic trading strategy with backtesting and visualization.
 
